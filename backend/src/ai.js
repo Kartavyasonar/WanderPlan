@@ -6,35 +6,54 @@ const groq = new Groq({
 });
 
 const buildPrompt = (destination, days) => {
-  return `You are a travel itinerary expert. A user wants to visit ${destination} for ${days} day(s).
+  return `You are an expert travel planner and travel blogger who has personally visited ${destination}. 
+A traveler wants a COMPLETE, realistic day-by-day itinerary for ${days} day(s) in ${destination}.
 
-Your task is to generate a detailed day-by-day travel itinerary.
+IMPORTANT: You MUST respond with ONLY a valid JSON array. No explanation, no markdown, no code blocks. Just raw JSON.
 
-IMPORTANT: You MUST respond with ONLY a valid JSON array. No explanation, no markdown, no code blocks. Just the raw JSON array.
+Each item in the array must follow EXACTLY this structure:
+{
+  "day": 1,
+  "placeName": "Cafe Coffee Day",
+  "description": "Start your morning with a strong filter coffee and light breakfast at this beloved local cafe before heading out for the day.",
+  "timeOfDay": "Morning",
+  "category": "Food",
+  "type": "breakfast",
+  "duration": "45 mins",
+  "tip": "Order the South Indian filter coffee, it's their specialty"
+}
 
-The JSON array must follow this exact structure:
-[
-  {
-    "day": 1,
-    "placeName": "Colosseum",
-    "description": "The iconic ancient amphitheater, a must-see symbol of Rome's imperial past.",
-    "timeOfDay": "Morning",
-    "category": "Historical"
-  }
-]
+STRICT DAY STRUCTURE - every single day MUST follow this exact flow:
+1. Morning - Breakfast spot (type: "breakfast") 
+2. Morning - First main attraction (type: "attraction")
+3. Afternoon - Lunch restaurant (type: "lunch")
+4. Afternoon - Second main attraction (type: "attraction")
+5. Afternoon - Third attraction or unique local experience (type: "experience")
+6. Evening - Sunset spot or pre-dinner activity (type: "sunset")
+7. Evening - Dinner restaurant (type: "dinner")
+8. Evening - Nightlife/dessert/night walk (type: "nightlife")
 
-Rules:
-- Generate 3 to 4 places per day (so ${days * 3} to ${days * 4} total items)
-- timeOfDay must be exactly one of: "Morning", "Afternoon", "Evening"
+That is EXACTLY 8 items per day. ${days} days = ${days * 8} total items.
+
+Additional rules:
+- timeOfDay must be exactly one of: "Morning", "Afternoon", "Evening"  
 - category must be exactly one of: "Historical", "Food", "Nature", "Culture", "Shopping", "Entertainment"
-- placeName must be a real, specific place in ${destination}. Use SHORT simple names that can be found on a map (e.g. "Senso-ji Temple" not "Asakusa Kannon Temple (Senso-ji)"). Avoid overly descriptive names, just the common name people use.
-- description should be 1-2 sentences, engaging and informative
-- Order the places logically by time of day within each day
-- The destination is: ${destination}
-- Total days: ${days}
+- placeName must be SHORT and searchable on Google Maps (e.g. "Karim's Restaurant" not "Famous Mughal Restaurant near Jama Masjid")
+- description must be 2-3 sentences. First sentence sets the scene. Second explains what to do/see. Third gives context or transition to next activity.
+- duration must be realistic (e.g. "45 mins", "2 hours", "1.5 hours")
+- tip must be a genuine insider tip a local would give (not generic advice)
+- Places must be geographically logical - don't send people across the city back and forth
+- Food spots must be real, well-known restaurants/cafes in ${destination}
+- Mix of famous landmarks AND hidden gems
+- Day 1 should start near the city center
+- Each day should cover a different neighborhood/area of ${destination}
 
-Respond with ONLY the JSON array, nothing else.`;
-};
+Destination: ${destination}
+Total days: ${days}
+Total items needed: ${days * 8}
+
+Respond with ONLY the raw JSON array.`
+}
 
 const generateItinerary = async (destination, days) => {
   const completion = await groq.chat.completions.create({

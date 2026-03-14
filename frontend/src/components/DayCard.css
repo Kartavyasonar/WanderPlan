@@ -1,74 +1,49 @@
-.day-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  box-shadow: var(--shadow);
-  display: flex;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.04);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.day-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.day-card__accent-bar {
-  width: 4px;
-  background: var(--card-accent, var(--forest));
-  flex-shrink: 0;
-}
-
-.day-card__content {
-  padding: 14px 16px;
-  flex: 1;
-}
-
-.day-card__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.day-card__time,
-.day-card__category {
+.day-card__type-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--badge-color, var(--forest));
+  background: color-mix(in srgb, var(--badge-color, var(--forest)) 12%, transparent);
+  padding: 3px 10px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.day-card__meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 4px;
+}
+
+.day-card__duration {
   font-size: 0.78rem;
   color: var(--ink-light);
   font-weight: 500;
 }
 
-.day-card__time-label {
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.day-card__name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 6px;
-  font-family: var(--font-display);
-}
-
-.day-card__desc {
-  font-size: 0.87rem;
-  color: var(--ink-light);
-  line-height: 1.55;
-  margin-bottom: 8px;
-}
-
-.day-card__coords {
-  font-size: 0.75rem;
+.day-card__tip {
+  font-size: 0.78rem;
   color: var(--forest);
-  font-weight: 500;
+  font-style: italic;
+  background: rgba(82, 183, 136, 0.08);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--forest-light);
+  line-height: 1.4;
 }
 
-.day-card__no-coords {
-  font-size: 0.75rem;
-  color: var(--terracotta);
+.day-card__click-hint {
+  font-size: 0.72rem;
+  color: var(--forest);
+  font-weight: 600;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+
+.day-card { cursor: pointer; }
+.day-card:focus {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
 }

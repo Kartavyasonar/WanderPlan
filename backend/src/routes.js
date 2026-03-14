@@ -32,14 +32,21 @@ router.post('/', async (req, res) => {
 
     const tripId = tripResult.rows[0].id;
 
-    for (const item of geocodedItinerary) {
-      await pool.query(
-        `INSERT INTO locations (trip_id, day, place_name, description, time_of_day, category, lat, lng)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [tripId, item.day, item.placeName, item.description,
-         item.timeOfDay, item.category || 'Culture', item.lat, item.lng]
-      );
-    }
+    // step 4: save each location - now includes duration and tip
+  for (const item of geocodedItinerary) {
+  await pool.query(
+    `INSERT INTO locations (trip_id, day, place_name, description, time_of_day, category, lat, lng, duration, tip, type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [
+      tripId, item.day, item.placeName, item.description,
+      item.timeOfDay, item.category || 'Culture',
+      item.lat, item.lng,
+      item.duration || null,
+      item.tip || null,
+      item.type || null
+    ]
+  );
+}
 
     console.log(`trip created with id: ${tripId}`);
     res.json({ tripId });
