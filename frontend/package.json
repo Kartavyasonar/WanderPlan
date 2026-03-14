@@ -20,15 +20,3 @@
     "vite": "^5.3.1"
   }
 }
-```
-
-### `frontend/.env.example`
-```
-VITE_API_URL=http://localhost:3001
-```
-
-### `frontend/.gitignore`
-```
-node_modules
-dist
-.env
