@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('./db');
-const { generateItinerary } = require('./gemini');
+const { generateItinerary } = require('./ai');
 const { geocodeItinerary } = require('./geocode');
 
 // POST /api/trips - create a new trip
