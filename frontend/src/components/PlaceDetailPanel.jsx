@@ -26,41 +26,91 @@ export default function PlaceDetailPanel({ location, onClose }) {
   }
 
   const fetchWiki = async () => {
+  try {
+    // add destination context to avoid wrong matches
+    // e.g. "Cafe Madras Mumbai" instead of just "Cafe Madras"
+    const contextQuery = encodeURIComponent(`${location.place_name}`)
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${contextQuery}`)
+    if (!res.ok) throw new Error('no wiki')
+    const data = await res.json()
+    if (data.type === 'disambiguation') throw new Error('disambiguation')
+
+    // sanity check - if the wikipedia result seems completely unrelated, skip it
+    // e.g. if place is a restaurant but wiki says it's a film, reject it
+    const placeLower = location.place_name.toLowerCase()
+    const summaryLower = (data.extract || '').toLowerCase()
+    const titleLower = (data.title || '').toLowerCase()
+
+    // check if result is a film/movie when we're looking for a place
+    const isFilm = summaryLower.includes('is a film') || summaryLower.includes('is an indian film') ||
+                   summaryLower.includes('is a movie') || summaryLower.includes('directed by') ||
+                   summaryLower.includes('is a television') || summaryLower.includes('is a novel')
+
+    const isRelevant = titleLower.includes(placeLower.split(' ')[0]) || 
+                       summaryLower.includes(location.category?.toLowerCase()) ||
+                       summaryLower.includes('restaurant') ||
+                       summaryLower.includes('temple') ||
+                       summaryLower.includes('mosque') ||
+                       summaryLower.includes('museum') ||
+                       summaryLower.includes('park') ||
+                       summaryLower.includes('monument') ||
+                       summaryLower.includes('located in') ||
+                       summaryLower.includes('situated in')
+
+    if (isFilm && !isRelevant) throw new Error('wrong result - film not place')
+
+    setWiki({
+      summary: data.extract,
+      url: data.content_urls?.desktop?.page,
+      thumbnail: data.thumbnail?.source || null
+    })
+  } catch {
+    // fallback: search with category context
     try {
-      const query = encodeURIComponent(location.place_name)
-      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${query}`)
-      if (!res.ok) throw new Error('no wiki')
+      // add category context to make search more specific
+      const categoryHint = {
+        Food: 'restaurant cafe',
+        Historical: 'monument historic',
+        Nature: 'park garden',
+        Culture: 'cultural',
+        Shopping: 'market shopping',
+        Entertainment: 'entertainment'
+      }[location.category] || ''
+
+      const searchQuery = encodeURIComponent(`${location.place_name} ${categoryHint}`)
+      const res = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&format=json&origin=*&srlimit=3`
+      )
       const data = await res.json()
-      if (data.type === 'disambiguation') throw new Error('disambiguation')
-      setWiki({
-        summary: data.extract,
-        url: data.content_urls?.desktop?.page,
-        thumbnail: data.thumbnail?.source || null
+      const results = data?.query?.search || []
+
+      // find the most relevant result - skip films/shows
+      const best = results.find(r => {
+        const snippet = (r.snippet || '').toLowerCase()
+        const title = (r.title || '').toLowerCase()
+        const isFilm = snippet.includes('film') || snippet.includes('directed by') || snippet.includes('television series')
+        const matchesPlace = title.includes(location.place_name.toLowerCase().split(' ')[0])
+        return !isFilm || matchesPlace
       })
-    } catch {
-      try {
-        const query = encodeURIComponent(location.place_name)
-        const res = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*&srlimit=1`
+
+      if (best) {
+        const pageRes = await fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(best.title)}`
         )
-        const data = await res.json()
-        const title = data?.query?.search?.[0]?.title
-        if (title) {
-          const pageRes = await fetch(
-            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
-          )
-          const pageData = await pageRes.json()
-          setWiki({
-            summary: pageData.extract,
-            url: pageData.content_urls?.desktop?.page,
-            thumbnail: pageData.thumbnail?.source || null
-          })
-        }
-      } catch {
+        const pageData = await pageRes.json()
+        setWiki({
+          summary: pageData.extract,
+          url: pageData.content_urls?.desktop?.page,
+          thumbnail: pageData.thumbnail?.source || null
+        })
+      } else {
         setWiki(null)
       }
+    } catch {
+      setWiki(null)
     }
   }
+}
 
   const fetchPhoto = async () => {
     try {

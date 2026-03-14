@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import './MapPanel.css'
@@ -41,16 +41,27 @@ const createMarkerIcon = (dayIndex, timeOfDay, isSelected) => {
 
 function FlyToPlace({ selectedPlace }) {
   const map = useMap()
+  const prevIdRef = useRef(null)
 
   useEffect(() => {
-    if (selectedPlace && selectedPlace.lat && selectedPlace.lng) {
-      map.flyTo(
-        [parseFloat(selectedPlace.lat), parseFloat(selectedPlace.lng)],
-        16,
-        { duration: 1.2 }
-      )
-    }
-  }, [selectedPlace?.id])
+    if (!selectedPlace) return
+    if (!selectedPlace.lat || !selectedPlace.lng) return
+    // only fly if it's actually a different place
+    if (prevIdRef.current === selectedPlace.id) return
+
+    prevIdRef.current = selectedPlace.id
+
+    const lat = parseFloat(selectedPlace.lat)
+    const lng = parseFloat(selectedPlace.lng)
+
+    // small delay so the panel animation doesn't fight with map animation
+    setTimeout(() => {
+      map.flyTo([lat, lng], 16, {
+        duration: 1.5,
+        easeLinearity: 0.25
+      })
+    }, 100)
+  }, [selectedPlace])
 
   return null
 }
