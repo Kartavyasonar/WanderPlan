@@ -7,6 +7,68 @@
   padding: 6px 14px;
   flex-shrink: 0;
   border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cost-estimate:hover {
+  background: var(--sand-dark);
+}
+
+.cost-estimate--input {
+  cursor: default;
+  padding: 4px 8px;
+  min-width: 260px;
+}
+
+.cost-estimate--input:hover {
+  background: var(--sand);
+}
+
+.cost-estimate__form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.cost-estimate__input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--ink);
+  outline: none;
+}
+
+.cost-estimate__input:focus {
+  border-color: var(--forest);
+}
+
+.cost-estimate__confirm {
+  background: var(--forest);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cost-estimate__cancel {
+  background: var(--sand-dark);
+  color: var(--ink-light);
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
 }
 
 .cost-estimate__icon {
@@ -26,7 +88,7 @@
 }
 
 .cost-estimate__label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--ink-light);
 }
 
@@ -39,6 +101,7 @@
   padding-left: 8px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .cost-estimate__breakdown { display: none; }
+  .cost-estimate__label { display: none; }
 }
