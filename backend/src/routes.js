@@ -20,14 +20,11 @@ router.post('/', async (req, res) => {
   try {
     console.log(`generating trip for ${destination}, ${days} days...`);
 
-    // step 1: ask gemini for an itinerary
     const itinerary = await generateItinerary(destination, parseInt(days));
 
-    // step 2: geocode all the places
     console.log(`geocoding ${itinerary.length} places...`);
     const geocodedItinerary = await geocodeItinerary(itinerary, destination);
 
-    // step 3: save the trip
     const tripResult = await pool.query(
       'INSERT INTO trips (destination, days, created_at) VALUES ($1, $2, NOW()) RETURNING id',
       [destination, parseInt(days)]
@@ -35,12 +32,12 @@ router.post('/', async (req, res) => {
 
     const tripId = tripResult.rows[0].id;
 
-    // step 4: save each location
     for (const item of geocodedItinerary) {
       await pool.query(
         `INSERT INTO locations (trip_id, day, place_name, description, time_of_day, category, lat, lng)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [tripId, item.day, item.placeName, item.description, item.timeOfDay, item.category || 'Culture', item.lat, item.lng]
+        [tripId, item.day, item.placeName, item.description,
+         item.timeOfDay, item.category || 'Culture', item.lat, item.lng]
       );
     }
 
@@ -49,7 +46,31 @@ router.post('/', async (req, res) => {
 
   } catch (err) {
     console.error('error creating trip:', err.message);
-    res.status(500).json({ error: 'something went wrong generating the trip. try again!' });
+
+    // check if it's a rate limit error
+    if (err.message && (err.message.includes('429') || err.message.includes('rate limit') || err.message.includes('quota'))) {
+      return res.status(429).json({
+        error: 'Our AI is a bit busy right now. Please wait 30 seconds and try again!',
+        retryAfter: 30
+      });
+    }
+
+    res.status(500).json({
+      error: 'Something went wrong generating the trip. Please try again!'
+    });
+  }
+});
+
+// GET /api/trips - get all trips (for history page)
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, destination, days, created_at FROM trips ORDER BY created_at DESC LIMIT 20'
+    );
+    res.json({ trips: result.rows });
+  } catch (err) {
+    console.error('error fetching trips:', err.message);
+    res.status(500).json({ error: 'could not fetch trips' });
   }
 });
 

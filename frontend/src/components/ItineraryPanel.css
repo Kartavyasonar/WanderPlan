@@ -48,3 +48,27 @@
   color: var(--ink-light);
   margin-left: auto;
 }
+/* travel time connector between cards */
+.travel-connector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  margin: -4px 0;
+}
+
+.travel-connector__line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.travel-connector__time {
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  white-space: nowrap;
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}

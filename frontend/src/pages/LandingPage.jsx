@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { useTheme } from '../context/ThemeContext'
 import './LandingPage.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-// the little floating cards showing what places look like
 const SAMPLE_CARDS = [
   { emoji: '🗼', name: 'Eiffel Tower', city: 'Paris' },
   { emoji: '🏛️', name: 'Colosseum', city: 'Rome' },
@@ -17,17 +17,37 @@ export default function LandingPage() {
   const [days, setDays] = useState(3)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loadingStep, setLoadingStep] = useState(0)
+  const [retryAfter, setRetryAfter] = useState(null)
   const navigate = useNavigate()
+  const { dark, setDark } = useTheme()
+
+  // animated loading steps shown to user
+  const LOADING_STEPS = [
+    '🤖 Asking AI to plan your trip...',
+    '📍 Finding all the locations...',
+    '🗺️ Pinning spots on the map...',
+    '💾 Saving your itinerary...',
+  ]
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!destination.trim()) {
-      setError('please enter a destination!')
+      setError('Please enter a destination!')
       return
     }
 
     setLoading(true)
     setError('')
+    setRetryAfter(null)
+
+    // cycle through loading steps for visual feedback
+    let step = 0
+    setLoadingStep(0)
+    const stepInterval = setInterval(() => {
+      step = Math.min(step + 1, LOADING_STEPS.length - 1)
+      setLoadingStep(step)
+    }, 4000)
 
     try {
       const res = await fetch(`${API_URL}/api/trips`, {
@@ -37,23 +57,36 @@ export default function LandingPage() {
       })
 
       const data = await res.json()
+      clearInterval(stepInterval)
+
+      if (res.status === 429) {
+        setRetryAfter(data.retryAfter || 30)
+        setError(data.error)
+        setLoading(false)
+        return
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'something went wrong')
       }
 
-      // redirect to the trip page
       navigate(`/trip/${data.tripId}`)
 
     } catch (err) {
+      clearInterval(stepInterval)
       setError(err.message)
       setLoading(false)
     }
   }
 
+  const handleRetry = () => {
+    setError('')
+    setRetryAfter(null)
+    handleSubmit({ preventDefault: () => {} })
+  }
+
   return (
-    <div className="landing">
-      {/* background decorations */}
+    <div className="landing page-enter">
       <div className="landing__bg-blob landing__bg-blob--1" />
       <div className="landing__bg-blob landing__bg-blob--2" />
 
@@ -61,6 +94,16 @@ export default function LandingPage() {
         <div className="landing__logo">
           <img src="/compass.svg" alt="compass" width="32" height="32" />
           <span>WanderPlan</span>
+        </div>
+        <div className="landing__nav-links">
+          <Link to="/history" className="landing__nav-link">Past Trips</Link>
+          <button
+            className="landing__theme-toggle"
+            onClick={() => setDark(!dark)}
+            title="Toggle dark mode"
+          >
+            {dark ? '☀️' : '🌙'}
+          </button>
         </div>
       </nav>
 
@@ -73,7 +116,7 @@ export default function LandingPage() {
               <em>planned in seconds</em>
             </h1>
             <p className="landing__subtitle">
-              Tell us where you want to go. Our AI builds a personalized 
+              Tell us where you want to go. Our AI builds a personalized
               day-by-day itinerary with an interactive map — completely free.
             </p>
           </div>
@@ -112,7 +155,46 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {error && <p className="landing__error">⚠️ {error}</p>}
+              {/* loading steps animation */}
+              {loading && (
+                <div className="landing__loading-steps">
+                  {LOADING_STEPS.map((step, i) => (
+                    <div
+                      key={i}
+                      className={`landing__step-item ${i === loadingStep ? 'active' : ''} ${i < loadingStep ? 'done' : ''}`}
+                    >
+                      <span className="landing__step-icon">
+                        {i < loadingStep ? '✓' : i === loadingStep ? '⟳' : '○'}
+                      </span>
+                      {step}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {error && (
+                <div className="landing__error">
+                  <span>⚠️ {error}</span>
+                  {retryAfter && (
+                    <button
+                      type="button"
+                      className="landing__retry-btn"
+                      onClick={handleRetry}
+                    >
+                      Retry in {retryAfter}s
+                    </button>
+                  )}
+                  {!retryAfter && (
+                    <button
+                      type="button"
+                      className="landing__retry-btn"
+                      onClick={handleRetry}
+                    >
+                      Try Again
+                    </button>
+                  )}
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -122,7 +204,7 @@ export default function LandingPage() {
                 {loading ? (
                   <span className="landing__loading-text">
                     <span className="landing__spinner" />
-                    Building your itinerary... ({days * 3}–{days * 4} places to geocode, ~{days * 4}s)
+                    Generating... (this takes ~{days * 4}s)
                   </span>
                 ) : (
                   '🗺️ Generate My Itinerary'
@@ -132,7 +214,6 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* sample cards just for looks */}
         <div className="landing__cards">
           {SAMPLE_CARDS.map((card, i) => (
             <div key={i} className="landing__sample-card" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -157,7 +238,7 @@ export default function LandingPage() {
             <div className="landing__step">
               <div className="landing__step-num">2</div>
               <h3>AI builds the plan</h3>
-              <p>Gemini AI creates a logical day-by-day itinerary with real places</p>
+              <p>Llama AI creates a logical day-by-day itinerary with real places</p>
             </div>
             <div className="landing__step-arrow">→</div>
             <div className="landing__step">
@@ -170,7 +251,10 @@ export default function LandingPage() {
       </main>
 
       <footer className="landing__footer">
-        <p>Built with React, Node.js, Gemini AI & OpenStreetMap · 100% free to use</p>
+        <p>© {new Date().getFullYear()} WanderPlan · Made with ❤️ by Kartavya Sonar</p>
+        <p style={{ fontSize: '0.78rem', marginTop: '4px', opacity: 0.7 }}>
+          Built with React, Node.js, Llama AI & OpenStreetMap · 100% free to use
+        </p>
       </footer>
     </div>
   )

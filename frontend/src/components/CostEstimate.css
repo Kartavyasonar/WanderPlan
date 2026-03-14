@@ -1,0 +1,44 @@
+.cost-estimate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sand);
+  border-radius: 20px;
+  padding: 6px 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.cost-estimate__icon {
+  font-size: 1.1rem;
+}
+
+.cost-estimate__info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.cost-estimate__total {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--forest);
+}
+
+.cost-estimate__label {
+  font-size: 0.72rem;
+  color: var(--ink-light);
+}
+
+.cost-estimate__breakdown {
+  display: flex;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--ink-light);
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+}
+
+@media (max-width: 480px) {
+  .cost-estimate__breakdown { display: none; }
+}

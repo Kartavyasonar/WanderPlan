@@ -16,6 +16,8 @@
   --ink-light: #4a4a6a;
   --white: #ffffff;
   --card-bg: #fefefe;
+  --bg: #f8edeb;
+  --border: rgba(0,0,0,0.08);
 
   --day-1: #e07a5f;
   --day-2: #3d5a80;
@@ -32,6 +34,22 @@
   --radius-sm: 8px;
   --shadow: 0 4px 24px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 48px rgba(0,0,0,0.14);
+
+  --transition: 0.2s ease;
+}
+
+/* dark mode */
+[data-theme="dark"] {
+  --sand: #1a1a2e;
+  --sand-dark: #16213e;
+  --ink: #e8e8f0;
+  --ink-light: #9999bb;
+  --white: #0f3460;
+  --card-bg: #16213e;
+  --bg: #1a1a2e;
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,0.4);
 }
 
 html { scroll-behavior: smooth; }
@@ -39,13 +57,24 @@ html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-body);
   color: var(--ink);
-  background: var(--sand);
+  background: var(--bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  transition: background var(--transition), color var(--transition);
 }
 
 button { cursor: pointer; font-family: var(--font-body); }
 a { color: inherit; text-decoration: none; }
+
+/* page transition */
+.page-enter {
+  animation: pageEnter 0.35s ease both;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--sand-dark); }
