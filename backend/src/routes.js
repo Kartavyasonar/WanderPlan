@@ -24,9 +24,9 @@ router.post('/', async (req, res) => {
     const geocodedItinerary = await geocodeItinerary(itinerary, destination)
 
     const tripResult = await pool.query(
-      'INSERT INTO trips (destination, days, style, mood, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
-      [destination, parseInt(days), style || null, mood || null]
-    )
+  'INSERT INTO trips (destination, days, style, mood, browser_id, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id',
+  [destination, parseInt(days), style || null, mood || null, req.body.browserId || null]
+)
 
     const tripId = tripResult.rows[0].id
 
@@ -57,19 +57,29 @@ router.post('/', async (req, res) => {
   }
 })
 
-// GET /api/trips - all trips for history page
+// GET /api/trips - get recent trips (filtered by session if available)
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, destination, days, style, mood, created_at FROM trips ORDER BY created_at DESC LIMIT 50'
-    )
+    // use a simple browser id passed as query param
+    const browserId = req.query.bid
+    
+    let result
+    if (browserId) {
+      result = await pool.query(
+        'SELECT id, destination, days, style, mood, created_at FROM trips WHERE browser_id = $1 ORDER BY created_at DESC LIMIT 20',
+        [browserId]
+      )
+    } else {
+      result = await pool.query(
+        'SELECT id, destination, days, style, mood, created_at FROM trips ORDER BY created_at DESC LIMIT 20'
+      )
+    }
     res.json({ trips: result.rows })
   } catch (err) {
     console.error('error fetching trips:', err.message)
     res.status(500).json({ error: 'could not fetch trips' })
   }
 })
-
 // GET /api/trips/:id
 router.get('/:id', async (req, res) => {
   const { id } = req.params

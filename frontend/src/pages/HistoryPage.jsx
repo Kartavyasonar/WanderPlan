@@ -28,9 +28,11 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { dark, setDark } = useTheme()
+  const bid = localStorage.getItem('wp-bid') || ''
+  fetch(`${API_URL}/api/trips?bid=${bid}`)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/trips`)
+    fetch(`${API_URL}/api/trips?limit=20`)
       .then(r => r.json())
       .then(data => {
         setTrips(data.trips || [])

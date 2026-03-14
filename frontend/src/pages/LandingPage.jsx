@@ -43,7 +43,11 @@ export default function LandingPage() {
   const [showPersonalize, setShowPersonalize] = useState(false)
   const navigate = useNavigate()
   const { dark, setDark } = useTheme()
-
+let browserId = localStorage.getItem('wp-bid')
+if (!browserId) {
+  browserId = Math.random().toString(36).slice(2) + Date.now().toString(36)
+  localStorage.setItem('wp-bid', browserId)
+}
   const handleSubmit = async (e) => {
     e?.preventDefault()
     if (!dest.trim()) { setError('Please enter a destination!'); return }
@@ -54,7 +58,7 @@ export default function LandingPage() {
       const res = await fetch(`${API_URL}/api/trips`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: dest.trim(), days, style, mood })
+        body: JSON.stringify({ destination: dest.trim(), days, style, mood, browserId })
       })
       const data = await res.json()
       clearInterval(si)
