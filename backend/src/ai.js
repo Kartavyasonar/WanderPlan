@@ -27,7 +27,7 @@ Rules:
 - Generate 3 to 4 places per day (so ${days * 3} to ${days * 4} total items)
 - timeOfDay must be exactly one of: "Morning", "Afternoon", "Evening"
 - category must be exactly one of: "Historical", "Food", "Nature", "Culture", "Shopping", "Entertainment"
-- placeName must be a real, specific place in ${destination}
+- placeName must be a real, specific place in ${destination}. Use SHORT simple names that can be found on a map (e.g. "Senso-ji Temple" not "Asakusa Kannon Temple (Senso-ji)"). Avoid overly descriptive names, just the common name people use.
 - description should be 1-2 sentences, engaging and informative
 - Order the places logically by time of day within each day
 - The destination is: ${destination}
