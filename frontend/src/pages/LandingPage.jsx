@@ -5,55 +5,71 @@ import './LandingPage.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
+const TRAVEL_STYLES = [
+  { id: 'balanced', label: '🌍 Balanced', desc: 'A bit of everything' },
+  { id: 'adventurous', label: '🧗 Adventure', desc: 'Offbeat & thrilling' },
+  { id: 'foodie', label: '🍜 Foodie', desc: 'Eat your way through' },
+  { id: 'romantic', label: '💑 Romantic', desc: 'Perfect for couples' },
+  { id: 'budget', label: '💸 Budget', desc: 'Spend less, see more' },
+  { id: 'cultural', label: '🎭 Cultural', desc: 'History & heritage' },
+  { id: 'luxury', label: '✨ Luxury', desc: 'Only the finest' },
+  { id: 'family', label: '👨‍👩‍👧 Family', desc: 'Fun for all ages' },
+]
+
+const MOODS = [
+  { id: 'relaxed', label: '😌 Relaxed' },
+  { id: 'energetic', label: '⚡ Energetic' },
+  { id: 'curious', label: '🔍 Curious' },
+  { id: 'spontaneous', label: '🎲 Spontaneous' },
+]
+
 const SAMPLE_CARDS = [
   { emoji: '🗼', name: 'Eiffel Tower', city: 'Paris' },
   { emoji: '🏛️', name: 'Colosseum', city: 'Rome' },
   { emoji: '⛩️', name: 'Fushimi Inari', city: 'Kyoto' },
-  { emoji: '🌉', name: 'Golden Gate', city: 'San Francisco' },
+  { emoji: '🕌', name: 'Taj Mahal', city: 'Agra' },
+]
+
+const LOADING_STEPS = [
+  '🤖 Asking AI to plan your trip...',
+  '🗺️ Building your day-by-day itinerary...',
+  '📍 Finding all the locations...',
+  '💾 Saving your itinerary...',
 ]
 
 export default function LandingPage() {
   const [destination, setDestination] = useState('')
   const [days, setDays] = useState(3)
+  const [style, setStyle] = useState('balanced')
+  const [mood, setMood] = useState('relaxed')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [loadingStep, setLoadingStep] = useState(0)
   const [retryAfter, setRetryAfter] = useState(null)
+  const [showQuiz, setShowQuiz] = useState(false)
   const navigate = useNavigate()
   const { dark, setDark } = useTheme()
 
-  // animated loading steps shown to user
-  const LOADING_STEPS = [
-    '🤖 Asking AI to plan your trip...',
-    '📍 Finding all the locations...',
-    '🗺️ Pinning spots on the map...',
-    '💾 Saving your itinerary...',
-  ]
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!destination.trim()) {
-      setError('Please enter a destination!')
-      return
-    }
+    if (!destination.trim()) { setError('Please enter a destination!'); return }
 
     setLoading(true)
     setError('')
     setRetryAfter(null)
-
-    // cycle through loading steps for visual feedback
-    let step = 0
     setLoadingStep(0)
+
+    let step = 0
     const stepInterval = setInterval(() => {
       step = Math.min(step + 1, LOADING_STEPS.length - 1)
       setLoadingStep(step)
-    }, 4000)
+    }, 5000)
 
     try {
       const res = await fetch(`${API_URL}/api/trips`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: destination.trim(), days })
+        body: JSON.stringify({ destination: destination.trim(), days, style, mood })
       })
 
       const data = await res.json()
@@ -66,10 +82,7 @@ export default function LandingPage() {
         return
       }
 
-      if (!res.ok) {
-        throw new Error(data.error || 'something went wrong')
-      }
-
+      if (!res.ok) throw new Error(data.error || 'something went wrong')
       navigate(`/trip/${data.tripId}`)
 
     } catch (err) {
@@ -77,12 +90,6 @@ export default function LandingPage() {
       setError(err.message)
       setLoading(false)
     }
-  }
-
-  const handleRetry = () => {
-    setError('')
-    setRetryAfter(null)
-    handleSubmit({ preventDefault: () => {} })
   }
 
   return (
@@ -97,11 +104,7 @@ export default function LandingPage() {
         </div>
         <div className="landing__nav-links">
           <Link to="/history" className="landing__nav-link">Past Trips</Link>
-          <button
-            className="landing__theme-toggle"
-            onClick={() => setDark(!dark)}
-            title="Toggle dark mode"
-          >
+          <button className="landing__theme-toggle" onClick={() => setDark(!dark)} title="Toggle dark mode">
             {dark ? '☀️' : '🌙'}
           </button>
         </div>
@@ -116,9 +119,18 @@ export default function LandingPage() {
               <em>planned in seconds</em>
             </h1>
             <p className="landing__subtitle">
-              Tell us where you want to go. Our AI builds a personalized
-              day-by-day itinerary with an interactive map — completely free.
+              Tell us where you want to go. Our AI builds a complete
+              day-by-day itinerary with maps, packing lists, cost estimates,
+              and insider tips — completely free.
             </p>
+            <div className="landing__features">
+              <span>🗺️ Interactive map</span>
+              <span>💡 Insider tips</span>
+              <span>🧳 Packing list</span>
+              <span>💰 Cost estimate</span>
+              <span>📅 Calendar export</span>
+              <span>🔊 Voice narration</span>
+            </div>
           </div>
 
           <div className="landing__form-wrapper">
@@ -130,7 +142,7 @@ export default function LandingPage() {
                 <input
                   id="destination"
                   type="text"
-                  placeholder="e.g. Tokyo, Paris, New York..."
+                  placeholder="e.g. Tokyo, Paris, Goa, Rajasthan..."
                   value={destination}
                   onChange={e => setDestination(e.target.value)}
                   disabled={loading}
@@ -139,7 +151,7 @@ export default function LandingPage() {
               </div>
 
               <div className="landing__field">
-                <label htmlFor="days">How many days?</label>
+                <label>How many days?</label>
                 <div className="landing__days-picker">
                   {[1,2,3,4,5,6,7].map(d => (
                     <button
@@ -155,14 +167,58 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* loading steps animation */}
+              {/* travel style quiz toggle */}
+              <button
+                type="button"
+                className="landing__quiz-toggle"
+                onClick={() => setShowQuiz(!showQuiz)}
+              >
+                🎯 Personalise my trip {showQuiz ? '▲' : '▼'}
+              </button>
+
+              {showQuiz && (
+                <div className="landing__quiz">
+                  <div className="landing__field">
+                    <label>Travel style</label>
+                    <div className="landing__style-grid">
+                      {TRAVEL_STYLES.map(s => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          className={`landing__style-btn ${style === s.id ? 'active' : ''}`}
+                          onClick={() => setStyle(s.id)}
+                          disabled={loading}
+                        >
+                          <span className="landing__style-label">{s.label}</span>
+                          <span className="landing__style-desc">{s.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="landing__field">
+                    <label>Your mood</label>
+                    <div className="landing__mood-picker">
+                      {MOODS.map(m => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          className={`landing__mood-btn ${mood === m.id ? 'active' : ''}`}
+                          onClick={() => setMood(m.id)}
+                          disabled={loading}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {loading && (
                 <div className="landing__loading-steps">
                   {LOADING_STEPS.map((step, i) => (
-                    <div
-                      key={i}
-                      className={`landing__step-item ${i === loadingStep ? 'active' : ''} ${i < loadingStep ? 'done' : ''}`}
-                    >
+                    <div key={i} className={`landing__step-item ${i === loadingStep ? 'active' : ''} ${i < loadingStep ? 'done' : ''}`}>
                       <span className="landing__step-icon">
                         {i < loadingStep ? '✓' : i === loadingStep ? '⟳' : '○'}
                       </span>
@@ -175,36 +231,17 @@ export default function LandingPage() {
               {error && (
                 <div className="landing__error">
                   <span>⚠️ {error}</span>
-                  {retryAfter && (
-                    <button
-                      type="button"
-                      className="landing__retry-btn"
-                      onClick={handleRetry}
-                    >
-                      Retry in {retryAfter}s
-                    </button>
-                  )}
-                  {!retryAfter && (
-                    <button
-                      type="button"
-                      className="landing__retry-btn"
-                      onClick={handleRetry}
-                    >
-                      Try Again
-                    </button>
-                  )}
+                  <button type="button" className="landing__retry-btn" onClick={handleSubmit}>
+                    {retryAfter ? `Retry in ${retryAfter}s` : 'Try Again'}
+                  </button>
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="landing__submit"
-                disabled={loading}
-              >
+              <button type="submit" className="landing__submit" disabled={loading}>
                 {loading ? (
                   <span className="landing__loading-text">
                     <span className="landing__spinner" />
-                    Generating... (this takes ~{days * 4}s)
+                    Generating... (~{days * 8} places to find)
                   </span>
                 ) : (
                   '🗺️ Generate My Itinerary'
@@ -231,20 +268,20 @@ export default function LandingPage() {
           <div className="landing__steps">
             <div className="landing__step">
               <div className="landing__step-num">1</div>
-              <h3>You pick a destination</h3>
-              <p>Just type the city and choose how many days you have</p>
+              <h3>Pick destination + style</h3>
+              <p>Choose where to go, how many days, and your travel personality</p>
             </div>
             <div className="landing__step-arrow">→</div>
             <div className="landing__step">
               <div className="landing__step-num">2</div>
               <h3>AI builds the plan</h3>
-              <p>Llama AI creates a logical day-by-day itinerary with real places</p>
+              <p>8 places per day — breakfast, attractions, lunch, hidden gems, dinner, nightlife</p>
             </div>
             <div className="landing__step-arrow">→</div>
             <div className="landing__step">
               <div className="landing__step-num">3</div>
-              <h3>Explore on the map</h3>
-              <p>All spots pinned on an interactive map, color-coded by day</p>
+              <h3>Explore, export, share</h3>
+              <p>Interactive map, voice narration, packing list, calendar export, WhatsApp share</p>
             </div>
           </div>
         </div>

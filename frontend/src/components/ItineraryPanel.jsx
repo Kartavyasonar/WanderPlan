@@ -33,7 +33,7 @@ const groupByDay = (locations) => {
   return groups
 }
 
-export default function ItineraryPanel({ locations, activeDay, totalDays, className, onPlaceSelect }) {
+export default function ItineraryPanel({ locations, activeDay, totalDays, className, onPlaceSelect, checkedPlaces, onToggleChecked }) {
   const [selectedPlace, setSelectedPlace] = useState(null)
 
   const handlePlaceClick = (place) => {
@@ -48,6 +48,8 @@ export default function ItineraryPanel({ locations, activeDay, totalDays, classN
           location={loc}
           dayColor={dayColor}
           onClick={handlePlaceClick}
+          isChecked={checkedPlaces?.[loc.id]}
+          onToggleChecked={onToggleChecked}
         />
         {i < locs.length - 1 && (
           <div className="travel-connector">

@@ -21,16 +21,21 @@ const TYPE_LABELS = {
   sunset: 'Sunset Spot', nightlife: 'Night Out',
 }
 
-export default function DayCard({ location, dayColor, onClick }) {
+export default function DayCard({ location, dayColor, onClick, isChecked, onToggleChecked }) {
   const categoryIcon = CATEGORY_ICONS[location.category] || '📍'
   const timeIcon = TIME_ICONS[location.time_of_day] || '🕐'
   const typeIcon = TYPE_ICONS[location.type] || categoryIcon
   const typeLabel = TYPE_LABELS[location.type] || location.category
   const hasCoords = location.lat && location.lng
 
+  const handleCheckClick = (e) => {
+    e.stopPropagation()
+    if (onToggleChecked) onToggleChecked(location.id)
+  }
+
   return (
     <div
-      className="day-card"
+      className={`day-card ${isChecked ? 'day-card--checked' : ''}`}
       style={{ '--card-accent': dayColor }}
       onClick={() => onClick && onClick(location)}
       role="button"
@@ -47,18 +52,22 @@ export default function DayCard({ location, dayColor, onClick }) {
           <div className="day-card__type-badge">
             {typeIcon} {typeLabel}
           </div>
+          {/* visited checkbox */}
+          <button
+            className={`day-card__check ${isChecked ? 'checked' : ''}`}
+            onClick={handleCheckClick}
+            title={isChecked ? 'Mark as not visited' : 'Mark as visited'}
+          >
+            {isChecked ? '✓' : ''}
+          </button>
         </div>
 
-        <h4 className="day-card__name">{location.place_name}</h4>
+        <h4 className={`day-card__name ${isChecked ? 'visited' : ''}`}>{location.place_name}</h4>
         <p className="day-card__desc">{location.description}</p>
 
         <div className="day-card__meta-row">
-          {location.duration && (
-            <span className="day-card__duration">⏱️ {location.duration}</span>
-          )}
-          {location.tip && (
-            <span className="day-card__tip">💡 {location.tip}</span>
-          )}
+          {location.duration && <span className="day-card__duration">⏱️ {location.duration}</span>}
+          {location.tip && <span className="day-card__tip">💡 {location.tip}</span>}
         </div>
 
         {hasCoords ? (

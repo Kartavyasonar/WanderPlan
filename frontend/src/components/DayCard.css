@@ -1,65 +1,122 @@
-.day-card__type-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--badge-color, var(--forest));
-  background: color-mix(in srgb, var(--badge-color, var(--forest)) 12%, transparent);
-  padding: 3px 10px;
-  border-radius: 20px;
+.day-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  cursor: pointer;
+}
+
+.day-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.day-card:focus { outline: 2px solid var(--forest); outline-offset: 2px; }
+.day-card--checked { opacity: 0.6; }
+
+.day-card__accent-bar {
+  width: 4px;
+  background: var(--card-accent, var(--forest));
+  flex-shrink: 0;
+}
+
+.day-card__content { padding: 12px 14px; flex: 1; min-width: 0; }
+
+.day-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 6px;
+}
+
+.day-card__time, .day-card__category {
   display: flex;
   align-items: center;
   gap: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-light);
+  font-weight: 500;
+}
+
+.day-card__time-label { font-weight: 600; color: var(--ink); }
+
+.day-card__type-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--forest);
+  background: rgba(45,106,79,0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+/* visited checkbox */
+.day-card__check {
+  width: 20px; height: 20px;
+  border: 2px solid var(--sand-dark);
+  border-radius: 4px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  margin-left: auto;
+}
+.day-card__check:hover { border-color: var(--forest); }
+.day-card__check.checked { background: var(--forest); border-color: var(--forest); }
+
+.day-card__name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+  transition: color 0.2s;
+}
+.day-card__name.visited { color: var(--ink-light); text-decoration: line-through; }
+
+.day-card__desc {
+  font-size: 0.84rem;
+  color: var(--ink-light);
+  line-height: 1.55;
+  margin-bottom: 6px;
 }
 
 .day-card__meta-row {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 8px 0 4px;
+  margin: 6px 0 4px;
 }
 
-.day-card__duration {
-  font-size: 0.78rem;
-  color: var(--ink-light);
-  font-weight: 500;
-}
+.day-card__duration { font-size: 0.76rem; color: var(--ink-light); font-weight: 500; }
 
 .day-card__tip {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--forest);
   font-style: italic;
-  background: rgba(82, 183, 136, 0.08);
+  background: rgba(82,183,136,0.08);
   padding: 4px 8px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   border-left: 2px solid var(--forest-light);
   line-height: 1.4;
 }
 
-.day-card__click-hint {
-  font-size: 0.72rem;
-  color: var(--forest);
-  font-weight: 600;
-  margin-top: 8px;
-  opacity: 0.7;
-}
-
-.day-card { cursor: pointer; }
-.day-card:focus {
-  outline: 2px solid var(--forest);
-  outline-offset: 2px;
-}
-.day-card {
-  cursor: pointer;
-}
-
-.day-card:focus {
-  outline: 2px solid var(--forest);
-  outline-offset: 2px;
-}
+.day-card__coords { font-size: 0.72rem; color: var(--forest); font-weight: 500; }
+.day-card__no-coords { font-size: 0.72rem; color: var(--terracotta); }
 
 .day-card__click-hint {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--forest);
   font-weight: 600;
   margin-top: 6px;
-  opacity: 0.7;
+  opacity: 0.6;
 }

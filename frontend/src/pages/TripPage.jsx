@@ -5,7 +5,10 @@ import MapPanel from '../components/MapPanel'
 import WeatherWidget from '../components/WeatherWidget'
 import CostEstimate from '../components/CostEstimate'
 import SkeletonLoader from '../components/SkeletonLoader'
+import PackingModal from '../components/PackingModal'
 import { useTheme } from '../context/ThemeContext'
+import { generateICS, downloadICS } from '../utils/calendarExport'
+import { speakTrip, stopSpeaking } from '../utils/voiceNarration'
 import './TripPage.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -20,10 +23,16 @@ export default function TripPage() {
   const [copied, setCopied] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [selectedPlace, setSelectedPlace] = useState(null)
+  const [showPacking, setShowPacking] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [checkedPlaces, setCheckedPlaces] = useState({})
   const { dark, setDark } = useTheme()
 
   useEffect(() => {
     fetchTrip()
+    // load checked places from localStorage
+    const saved = localStorage.getItem(`wanderplan-checked-${id}`)
+    if (saved) setCheckedPlaces(JSON.parse(saved))
   }, [id])
 
   const fetchTrip = async () => {
@@ -49,7 +58,39 @@ export default function TripPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleExportPDF = () => { window.print() }
+  const handleExportPDF = () => window.print()
+
+  const handleCalendarExport = () => {
+    if (!trip || !locations.length) return
+    const icsContent = generateICS(trip, locations)
+    downloadICS(icsContent, `${trip.destination}-wanderplan.ics`)
+  }
+
+  const handleVoice = () => {
+    if (isSpeaking) {
+      stopSpeaking()
+      setIsSpeaking(false)
+      return
+    }
+    const visible = activeDay === 'all'
+      ? locations
+      : locations.filter(l => l.day === activeDay)
+    speakTrip(visible, trip?.destination, () => setIsSpeaking(false))
+    setIsSpeaking(true)
+  }
+
+  const toggleChecked = (locationId) => {
+    const updated = { ...checkedPlaces, [locationId]: !checkedPlaces[locationId] }
+    setCheckedPlaces(updated)
+    localStorage.setItem(`wanderplan-checked-${id}`, JSON.stringify(updated))
+  }
+
+  // progress for current view
+  const visibleLocations = activeDay === 'all'
+    ? locations
+    : locations.filter(l => l.day === activeDay)
+  const checkedCount = visibleLocations.filter(l => checkedPlaces[l.id]).length
+  const progress = visibleLocations.length ? Math.round((checkedCount / visibleLocations.length) * 100) : 0
 
   if (loading) {
     return (
@@ -98,22 +139,60 @@ export default function TripPage() {
 
   const days = Array.from({ length: trip.days }, (_, i) => i + 1)
 
+  // AI cover art from Pollinations - free, no API key needed!
+  const coverArtUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${trip.destination} travel landscape beautiful scenic photography`)}?width=1200&height=400&nologo=true&seed=${trip.id}`
+
   return (
     <div className="trip-page page-enter">
+      {/* AI cover art banner */}
+      <div className="trip-cover" style={{ backgroundImage: `url(${coverArtUrl})` }}>
+        <div className="trip-cover__overlay">
+          <Link to="/" className="trip-cover__logo">
+            <img src="/compass.svg" alt="compass" width="24" height="24" />
+            WanderPlan
+          </Link>
+          <div className="trip-cover__info">
+            <h1 className="trip-cover__title">{trip.destination}</h1>
+            <div className="trip-cover__meta">
+              <span>{trip.days} day{trip.days > 1 ? 's' : ''}</span>
+              {trip.style && <span>· {trip.style}</span>}
+              {trip.mood && <span>· {trip.mood} mood</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* sticky action bar */}
       <header className="trip-header">
-        <Link to="/" className="trip-header__logo">
-          <img src="/compass.svg" alt="compass" width="28" height="28" />
-          <span className="trip-header__logo-text">WanderPlan</span>
-        </Link>
         <div className="trip-header__info">
           <h1 className="trip-header__title">{trip.destination}</h1>
           <span className="trip-header__badge">{trip.days} day{trip.days > 1 ? 's' : ''}</span>
+          {progress > 0 && (
+            <div className="trip-header__progress">
+              <div className="trip-header__progress-bar" style={{ width: `${progress}%` }} />
+              <span className="trip-header__progress-label">{progress}% visited</span>
+            </div>
+          )}
         </div>
+
         <div className="trip-header__actions">
-          <button className="trip-header__btn trip-header__btn--ghost" onClick={handleExportPDF} title="Export as PDF">
-            📄 <span className="btn-label">Export</span>
+          <button
+            className={`trip-header__btn trip-header__btn--ghost ${isSpeaking ? 'speaking' : ''}`}
+            onClick={handleVoice}
+            title={isSpeaking ? 'Stop narration' : 'Voice narration'}
+          >
+            {isSpeaking ? '⏹️' : '🔊'} <span className="btn-label">{isSpeaking ? 'Stop' : 'Listen'}</span>
           </button>
-          <button className="trip-header__btn trip-header__btn--ghost" onClick={() => setDark(!dark)} title="Toggle dark mode">
+          <button className="trip-header__btn trip-header__btn--ghost" onClick={() => setShowPacking(true)} title="Packing list">
+            🧳 <span className="btn-label">Packing</span>
+          </button>
+          <button className="trip-header__btn trip-header__btn--ghost" onClick={handleCalendarExport} title="Export to calendar">
+            📅 <span className="btn-label">Calendar</span>
+          </button>
+          <button className="trip-header__btn trip-header__btn--ghost" onClick={handleExportPDF} title="Export as PDF">
+            📄 <span className="btn-label">PDF</span>
+          </button>
+          <button className="trip-header__btn trip-header__btn--ghost" onClick={() => setDark(!dark)}>
             {dark ? '☀️' : '🌙'}
           </button>
           <button className="trip-header__btn trip-header__btn--primary" onClick={handleShare}>
@@ -122,11 +201,18 @@ export default function TripPage() {
         </div>
       </header>
 
+      {/* widgets */}
       <div className="trip-widgets">
         <WeatherWidget destination={trip.destination} />
         <CostEstimate destination={trip.destination} days={trip.days} />
+        {trip.style && (
+          <div className="trip-style-badge">
+            🎯 {trip.style} trip
+          </div>
+        )}
       </div>
 
+      {/* day tabs */}
       <div className="trip-days-bar">
         <button
           className={`trip-day-tab ${activeDay === 'all' ? 'active' : ''}`}
@@ -156,6 +242,8 @@ export default function TripPage() {
           totalDays={trip.days}
           className={showMap ? 'hidden-mobile' : ''}
           onPlaceSelect={setSelectedPlace}
+          checkedPlaces={checkedPlaces}
+          onToggleChecked={toggleChecked}
         />
         <MapPanel
           locations={locations}
@@ -164,6 +252,15 @@ export default function TripPage() {
           selectedPlace={selectedPlace}
         />
       </div>
+
+      {/* packing list modal */}
+      {showPacking && (
+        <PackingModal
+          tripId={id}
+          destination={trip.destination}
+          onClose={() => setShowPacking(false)}
+        />
+      )}
 
       <div className="trip-print-footer">
         <p>Generated by WanderPlan · wanderplan.vercel.app</p>

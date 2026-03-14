@@ -1,0 +1,12 @@
+{
+  "name": "WanderPlan",
+  "short_name": "WanderPlan",
+  "description": "AI Travel Itinerary Planner",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8edeb",
+  "theme_color": "#2d6a4f",
+  "icons": [
+    { "src": "/compass.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
