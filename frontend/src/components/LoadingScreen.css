@@ -1,0 +1,31 @@
+.loading-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sand);
+}
+
+.loading-screen__content {
+  text-align: center;
+}
+
+.loading-screen__compass {
+  animation: spin 2s linear infinite;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-screen__content h2 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.loading-screen__content p {
+  color: var(--ink-light);
+}

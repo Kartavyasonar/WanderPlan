@@ -1,0 +1,37 @@
+.notfound {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notfound__content {
+  text-align: center;
+  padding: 40px;
+}
+
+.notfound__emoji {
+  font-size: 5rem;
+  margin-bottom: 16px;
+}
+
+.notfound__content h1 {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.notfound__content p {
+  color: var(--ink-light);
+  margin-bottom: 28px;
+}
+
+.notfound__btn {
+  background: var(--forest);
+  color: var(--white);
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  display: inline-block;
+  font-family: var(--font-body);
+}

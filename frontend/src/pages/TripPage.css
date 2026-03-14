@@ -1,0 +1,151 @@
+.trip-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--sand);
+}
+
+.trip-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--white);
+  border-bottom: 1px solid var(--sand-dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.trip-header__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--forest-dark);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.trip-header__info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trip-header__title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.trip-header__badge {
+  background: var(--sand-dark);
+  color: var(--ink-light);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.trip-header__share {
+  background: var(--forest);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.trip-header__share:hover {
+  background: var(--forest-dark);
+}
+
+/* day filter tabs */
+.trip-days-bar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 24px;
+  background: var(--white);
+  border-bottom: 1px solid var(--sand-dark);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.trip-day-tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--sand-dark);
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-light);
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.trip-day-tab:hover {
+  border-color: var(--forest-light);
+  color: var(--forest);
+}
+
+.trip-day-tab.active {
+  background: var(--day-color, var(--forest));
+  border-color: var(--day-color, var(--forest));
+  color: white;
+}
+
+/* the main split view */
+.trip-split {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  overflow: hidden;
+}
+
+/* error state */
+.trip-error {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trip-error__content {
+  text-align: center;
+  padding: 40px;
+}
+
+.trip-error__content h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin: 16px 0 8px;
+}
+
+.trip-error__content p {
+  color: var(--ink-light);
+  margin-bottom: 24px;
+}
+
+.trip-error__btn {
+  background: var(--forest);
+  color: var(--white);
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .trip-split {
+    grid-template-columns: 1fr;
+    grid-template-rows: 50vh 50vh;
+  }
+}
