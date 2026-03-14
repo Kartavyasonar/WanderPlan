@@ -36,9 +36,8 @@ Remember: respond with ONLY the JSON array, nothing else.`;
 };
 
 const generateItinerary = async (destination, days) => {
-  // using gemini-2.0-flash-lite - most reliable free tier model
-  // using 1.5-flash for the most stable free tier experience
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });  
+  
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   const prompt = buildPrompt(destination, days);
 
   const result = await model.generateContent(prompt);
