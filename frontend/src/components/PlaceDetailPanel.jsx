@@ -1,5 +1,3 @@
-// side panel that shows when user clicks a place card
-// fetches wikipedia summary and unsplash photo for the place
 import { useState, useEffect } from 'react'
 import './PlaceDetailPanel.css'
 
@@ -23,7 +21,6 @@ export default function PlaceDetailPanel({ location, onClose }) {
   }, [location?.id])
 
   const fetchDetails = async () => {
-    // fetch wikipedia summary and photo in parallel
     await Promise.all([fetchWiki(), fetchPhoto()])
     setLoading(false)
   }
@@ -31,9 +28,7 @@ export default function PlaceDetailPanel({ location, onClose }) {
   const fetchWiki = async () => {
     try {
       const query = encodeURIComponent(location.place_name)
-      const res = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${query}`
-      )
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${query}`)
       if (!res.ok) throw new Error('no wiki')
       const data = await res.json()
       if (data.type === 'disambiguation') throw new Error('disambiguation')
@@ -43,9 +38,8 @@ export default function PlaceDetailPanel({ location, onClose }) {
         thumbnail: data.thumbnail?.source || null
       })
     } catch {
-      // try with destination added
       try {
-        const query = encodeURIComponent(`${location.place_name}`)
+        const query = encodeURIComponent(location.place_name)
         const res = await fetch(
           `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*&srlimit=1`
         )
@@ -70,7 +64,6 @@ export default function PlaceDetailPanel({ location, onClose }) {
 
   const fetchPhoto = async () => {
     try {
-      // use wikimedia commons for photos - totally free
       const query = encodeURIComponent(location.place_name)
       const res = await fetch(
         `https://en.wikipedia.org/w/api.php?action=query&titles=${query}&prop=pageimages&format=json&pithumbsize=600&origin=*`
@@ -96,11 +89,8 @@ export default function PlaceDetailPanel({ location, onClose }) {
 
   return (
     <>
-      {/* backdrop */}
       <div className="place-panel__backdrop" onClick={onClose} />
-
       <div className="place-panel">
-        {/* header */}
         <div className="place-panel__header" style={{ borderTopColor: dayColor }}>
           <button className="place-panel__close" onClick={onClose}>✕</button>
           <div className="place-panel__meta">
@@ -115,10 +105,7 @@ export default function PlaceDetailPanel({ location, onClose }) {
         </div>
 
         <div className="place-panel__body">
-          {/* photo */}
-          {loading && (
-            <div className="place-panel__photo-skeleton skeleton" />
-          )}
+          {loading && <div className="place-panel__photo-skeleton skeleton" />}
 
           {!loading && (photo || wiki?.thumbnail) && (
             <div className="place-panel__photo-wrap">
@@ -131,19 +118,30 @@ export default function PlaceDetailPanel({ location, onClose }) {
             </div>
           )}
 
-          {/* our description */}
           <div className="place-panel__section">
             <h4>About this place</h4>
             <p>{location.description}</p>
           </div>
 
-          {/* wikipedia summary */}
+          {location.tip && (
+            <div className="place-panel__section">
+              <h4>💡 Insider Tip</h4>
+              <p className="place-panel__tip-text">{location.tip}</p>
+            </div>
+          )}
+
+          {location.duration && (
+            <div className="place-panel__section">
+              <h4>⏱️ Suggested Duration</h4>
+              <p>{location.duration}</p>
+            </div>
+          )}
+
           {loading && (
             <div className="place-panel__section">
               <div className="skeleton skeleton--text" style={{ width: '100%', marginBottom: 8 }} />
               <div className="skeleton skeleton--text" style={{ width: '90%', marginBottom: 6 }} />
-              <div className="skeleton skeleton--text" style={{ width: '95%', marginBottom: 6 }} />
-              <div className="skeleton skeleton--text" style={{ width: '70%' }} />
+              <div className="skeleton skeleton--text" style={{ width: '80%' }} />
             </div>
           )}
 
@@ -151,10 +149,7 @@ export default function PlaceDetailPanel({ location, onClose }) {
             <div className="place-panel__section">
               <h4>📖 Wikipedia</h4>
               <p className="place-panel__wiki-text">
-                {wiki.summary.length > 400
-                  ? wiki.summary.substring(0, 400) + '...'
-                  : wiki.summary
-                }
+                {wiki.summary.length > 400 ? wiki.summary.substring(0, 400) + '...' : wiki.summary}
               </p>
               {wiki.url && (
                 <a href={wiki.url} target="_blank" rel="noopener noreferrer" className="place-panel__wiki-link">
@@ -170,17 +165,15 @@ export default function PlaceDetailPanel({ location, onClose }) {
             </div>
           )}
 
-          {/* coordinates */}
           {location.lat && location.lng && (
             <div className="place-panel__section">
-              <h4>📍 Location</h4>
+              <h4>📍 Coordinates</h4>
               <p className="place-panel__coords">
                 {parseFloat(location.lat).toFixed(4)}, {parseFloat(location.lng).toFixed(4)}
               </p>
             </div>
           )}
 
-          {/* open in maps button */}
           <a
             href={mapsUrl}
             target="_blank"

@@ -18,7 +18,8 @@ export default function TripPage() {
   const [error, setError] = useState('')
   const [activeDay, setActiveDay] = useState('all')
   const [copied, setCopied] = useState(false)
-  const [showMap, setShowMap] = useState(false) // mobile map toggle
+  const [showMap, setShowMap] = useState(false)
+  const [selectedPlace, setSelectedPlace] = useState(null)
   const { dark, setDark } = useTheme()
 
   useEffect(() => {
@@ -31,14 +32,8 @@ export default function TripPage() {
     try {
       const res = await fetch(`${API_URL}/api/trips/${id}`)
       const data = await res.json()
-
-      if (res.status === 404) {
-        setError('not_found')
-        return
-      }
-
+      if (res.status === 404) { setError('not_found'); return }
       if (!res.ok) throw new Error(data.error || 'trip not found')
-
       setTrip(data.trip)
       setLocations(data.locations)
     } catch (err) {
@@ -54,9 +49,7 @@ export default function TripPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleExportPDF = () => {
-    window.print()
-  }
+  const handleExportPDF = () => { window.print() }
 
   if (loading) {
     return (
@@ -79,12 +72,8 @@ export default function TripPage() {
           <h2>Trip Not Found</h2>
           <p>This trip doesn't exist or may have been deleted.</p>
           <div className="trip-error__actions">
-            <Link to="/" className="trip-error__btn trip-error__btn--primary">
-              Plan a New Trip
-            </Link>
-            <Link to="/history" className="trip-error__btn trip-error__btn--secondary">
-              View Past Trips
-            </Link>
+            <Link to="/" className="trip-error__btn trip-error__btn--primary">Plan a New Trip</Link>
+            <Link to="/history" className="trip-error__btn trip-error__btn--secondary">View Past Trips</Link>
           </div>
         </div>
       </div>
@@ -99,12 +88,8 @@ export default function TripPage() {
           <h2>Something went wrong</h2>
           <p>{error}</p>
           <div className="trip-error__actions">
-            <button className="trip-error__btn trip-error__btn--primary" onClick={fetchTrip}>
-              Try Again
-            </button>
-            <Link to="/" className="trip-error__btn trip-error__btn--secondary">
-              Go Home
-            </Link>
+            <button className="trip-error__btn trip-error__btn--primary" onClick={fetchTrip}>Try Again</button>
+            <Link to="/" className="trip-error__btn trip-error__btn--secondary">Go Home</Link>
           </div>
         </div>
       </div>
@@ -120,43 +105,28 @@ export default function TripPage() {
           <img src="/compass.svg" alt="compass" width="28" height="28" />
           <span className="trip-header__logo-text">WanderPlan</span>
         </Link>
-
         <div className="trip-header__info">
           <h1 className="trip-header__title">{trip.destination}</h1>
           <span className="trip-header__badge">{trip.days} day{trip.days > 1 ? 's' : ''}</span>
         </div>
-
         <div className="trip-header__actions">
-          <button
-            className="trip-header__btn trip-header__btn--ghost"
-            onClick={handleExportPDF}
-            title="Export as PDF"
-          >
+          <button className="trip-header__btn trip-header__btn--ghost" onClick={handleExportPDF} title="Export as PDF">
             📄 <span className="btn-label">Export</span>
           </button>
-          <button
-            className="trip-header__btn trip-header__btn--ghost"
-            onClick={() => setDark(!dark)}
-            title="Toggle dark mode"
-          >
+          <button className="trip-header__btn trip-header__btn--ghost" onClick={() => setDark(!dark)} title="Toggle dark mode">
             {dark ? '☀️' : '🌙'}
           </button>
-          <button
-            className="trip-header__btn trip-header__btn--primary"
-            onClick={handleShare}
-          >
+          <button className="trip-header__btn trip-header__btn--primary" onClick={handleShare}>
             {copied ? '✓ Copied!' : '🔗 Share'}
           </button>
         </div>
       </header>
 
-      {/* weather + cost widgets */}
       <div className="trip-widgets">
         <WeatherWidget destination={trip.destination} />
         <CostEstimate destination={trip.destination} days={trip.days} />
       </div>
 
-      {/* day filter tabs */}
       <div className="trip-days-bar">
         <button
           className={`trip-day-tab ${activeDay === 'all' ? 'active' : ''}`}
@@ -174,12 +144,7 @@ export default function TripPage() {
             Day {d}
           </button>
         ))}
-
-        {/* mobile map toggle */}
-        <button
-          className="trip-day-tab trip-map-toggle"
-          onClick={() => setShowMap(!showMap)}
-        >
+        <button className="trip-day-tab trip-map-toggle" onClick={() => setShowMap(!showMap)}>
           {showMap ? '📋 List' : '🗺️ Map'}
         </button>
       </div>
@@ -190,15 +155,16 @@ export default function TripPage() {
           activeDay={activeDay}
           totalDays={trip.days}
           className={showMap ? 'hidden-mobile' : ''}
+          onPlaceSelect={setSelectedPlace}
         />
         <MapPanel
           locations={locations}
           activeDay={activeDay}
           className={!showMap ? 'hidden-mobile' : ''}
+          selectedPlace={selectedPlace}
         />
       </div>
 
-      {/* print-only footer */}
       <div className="trip-print-footer">
         <p>Generated by WanderPlan · wanderplan.vercel.app</p>
         <p>© {new Date().getFullYear()} Made by Kartavya Sonar</p>

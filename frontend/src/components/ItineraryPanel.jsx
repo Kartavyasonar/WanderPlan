@@ -33,8 +33,13 @@ const groupByDay = (locations) => {
   return groups
 }
 
-export default function ItineraryPanel({ locations, activeDay, totalDays, className }) {
+export default function ItineraryPanel({ locations, activeDay, totalDays, className, onPlaceSelect }) {
   const [selectedPlace, setSelectedPlace] = useState(null)
+
+  const handlePlaceClick = (place) => {
+    setSelectedPlace(place)
+    if (onPlaceSelect) onPlaceSelect(place)
+  }
 
   const renderLocationsWithTravel = (locs, dayColor) => {
     return locs.map((loc, i) => (
@@ -42,7 +47,7 @@ export default function ItineraryPanel({ locations, activeDay, totalDays, classN
         <DayCard
           location={loc}
           dayColor={dayColor}
-          onClick={setSelectedPlace}
+          onClick={handlePlaceClick}
         />
         {i < locs.length - 1 && (
           <div className="travel-connector">
@@ -62,7 +67,10 @@ export default function ItineraryPanel({ locations, activeDay, totalDays, classN
       const grouped = groupByDay(locations)
       return Object.entries(grouped).map(([day, dayLocations]) => (
         <div key={day} className="itinerary-day-section">
-          <div className="itinerary-day-header" style={{ '--day-color': `var(--day-${Math.min(parseInt(day), 7)})` }}>
+          <div
+            className="itinerary-day-header"
+            style={{ '--day-color': `var(--day-${Math.min(parseInt(day), 7)})` }}
+          >
             <span className="itinerary-day-dot" />
             <h3>Day {day}</h3>
             <span className="itinerary-day-count">{dayLocations.length} places</span>
@@ -75,7 +83,10 @@ export default function ItineraryPanel({ locations, activeDay, totalDays, classN
     const filtered = locations.filter(l => l.day === activeDay)
     return (
       <>
-        <div className="itinerary-day-header" style={{ '--day-color': `var(--day-${Math.min(activeDay, 7)})` }}>
+        <div
+          className="itinerary-day-header"
+          style={{ '--day-color': `var(--day-${Math.min(activeDay, 7)})` }}
+        >
           <span className="itinerary-day-dot" />
           <h3>Day {activeDay}</h3>
           <span className="itinerary-day-count">{filtered.length} places</span>
@@ -93,7 +104,6 @@ export default function ItineraryPanel({ locations, activeDay, totalDays, classN
         </div>
       </div>
 
-      {/* place detail side panel */}
       {selectedPlace && (
         <PlaceDetailPanel
           location={selectedPlace}
