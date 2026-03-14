@@ -5,77 +5,117 @@
 }
 
 :root {
-  --forest: #2d6a4f;
-  --forest-dark: #1b4332;
-  --forest-light: #52b788;
-  --sand: #f8edeb;
-  --sand-dark: #ede0d4;
-  --terracotta: #e07a5f;
-  --terracotta-dark: #c1632a;
-  --ink: #1a1a2e;
-  --ink-light: #4a4a6a;
+  /* warm earthy palette */
+  --forest: #1e5c3a;
+  --forest-mid: #2d7a52;
+  --forest-light: #4aab74;
+  --forest-glow: rgba(30, 92, 58, 0.12);
+  --amber: #e8913a;
+  --amber-light: #f5b56b;
+  --ink: #0f1c14;
+  --ink-mid: #2a3d30;
+  --ink-soft: #5a7062;
+  --parchment: #faf6f0;
+  --parchment-mid: #f2ebe0;
+  --parchment-dark: #e8ddd0;
   --white: #ffffff;
-  --card-bg: #fefefe;
-  --bg: #f8edeb;
-  --border: rgba(0,0,0,0.08);
+  --border: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.13);
 
-  --day-1: #e07a5f;
-  --day-2: #3d5a80;
-  --day-3: #588157;
-  --day-4: #9c6b98;
-  --day-5: #d4a017;
-  --day-6: #457b9d;
-  --day-7: #bc4749;
+  /* day colors */
+  --day-1: #d4654a;
+  --day-2: #3a6ea8;
+  --day-3: #4a8c5c;
+  --day-4: #8b5e9e;
+  --day-5: #c9881a;
+  --day-6: #3a8ca8;
+  --day-7: #a84444;
 
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', -apple-system, sans-serif;
+  /* type */
+  --font-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-body: 'Outfit', 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 48px rgba(0,0,0,0.14);
+  /* spacing */
+  --r: 14px;
+  --r-sm: 8px;
+  --r-lg: 20px;
+  --r-xl: 28px;
 
-  --transition: 0.2s ease;
+  /* shadows */
+  --shadow-sm: 0 2px 8px rgba(15,28,20,0.06);
+  --shadow: 0 4px 20px rgba(15,28,20,0.1);
+  --shadow-lg: 0 12px 48px rgba(15,28,20,0.15);
+  --shadow-xl: 0 24px 80px rgba(15,28,20,0.2);
+
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* dark mode */
 [data-theme="dark"] {
-  --sand: #1a1a2e;
-  --sand-dark: #16213e;
-  --ink: #e8e8f0;
-  --ink-light: #9999bb;
-  --white: #0f3460;
-  --card-bg: #16213e;
-  --bg: #1a1a2e;
-  --border: rgba(255,255,255,0.08);
-  --shadow: 0 4px 24px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 48px rgba(0,0,0,0.4);
+  --parchment: #0f1c14;
+  --parchment-mid: #162012;
+  --parchment-dark: #1e2d1f;
+  --ink: #e8f0ea;
+  --ink-mid: #b8ccba;
+  --ink-soft: #7a9c7e;
+  --white: #1a2b1c;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.13);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
 }
 
 html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
+  background: var(--parchment);
   color: var(--ink);
-  background: var(--bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  transition: background var(--transition), color var(--transition);
+  -moz-osx-font-smoothing: grayscale;
 }
 
-button { cursor: pointer; font-family: var(--font-body); }
-a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: var(--font-body); border: none; background: none; }
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; }
 
-/* page transition */
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--parchment-dark); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--forest-light); }
+
+/* page entrance */
 .page-enter {
-  animation: pageEnter 0.35s ease both;
+  animation: pageIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
-
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(16px); }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--sand-dark); }
-::-webkit-scrollbar-thumb { background: var(--forest-light); border-radius: 3px; }
+/* skeleton shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--parchment-mid) 25%,
+    var(--parchment-dark) 50%,
+    var(--parchment-mid) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease infinite;
+  border-radius: var(--r-sm);
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* print */
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+}
+.print-only { display: none; }

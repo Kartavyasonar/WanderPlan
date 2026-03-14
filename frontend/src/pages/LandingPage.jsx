@@ -5,293 +5,251 @@ import './LandingPage.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-const TRAVEL_STYLES = [
-  { id: 'balanced', label: '🌍 Balanced', desc: 'A bit of everything' },
-  { id: 'adventurous', label: '🧗 Adventure', desc: 'Offbeat & thrilling' },
-  { id: 'foodie', label: '🍜 Foodie', desc: 'Eat your way through' },
-  { id: 'romantic', label: '💑 Romantic', desc: 'Perfect for couples' },
-  { id: 'budget', label: '💸 Budget', desc: 'Spend less, see more' },
-  { id: 'cultural', label: '🎭 Cultural', desc: 'History & heritage' },
-  { id: 'luxury', label: '✨ Luxury', desc: 'Only the finest' },
-  { id: 'family', label: '👨‍👩‍👧 Family', desc: 'Fun for all ages' },
+const STYLES = [
+  { id: 'balanced',    emoji: '🌍', label: 'Balanced',    desc: 'A bit of everything' },
+  { id: 'adventurous', emoji: '🧗', label: 'Adventure',   desc: 'Offbeat & thrilling' },
+  { id: 'foodie',      emoji: '🍜', label: 'Foodie',      desc: 'Eat your way through' },
+  { id: 'romantic',    emoji: '💑', label: 'Romantic',    desc: 'Perfect for couples' },
+  { id: 'budget',      emoji: '💸', label: 'Budget',      desc: 'Spend less, see more' },
+  { id: 'cultural',    emoji: '🎭', label: 'Cultural',    desc: 'History & heritage' },
+  { id: 'luxury',      emoji: '✨', label: 'Luxury',      desc: 'Only the finest' },
+  { id: 'family',      emoji: '👨‍👩‍👧', label: 'Family',   desc: 'Fun for all ages' },
 ]
 
 const MOODS = [
-  { id: 'relaxed', label: '😌 Relaxed' },
-  { id: 'energetic', label: '⚡ Energetic' },
-  { id: 'curious', label: '🔍 Curious' },
-  { id: 'spontaneous', label: '🎲 Spontaneous' },
+  { id: 'relaxed',     emoji: '😌', label: 'Relaxed' },
+  { id: 'energetic',   emoji: '⚡', label: 'Energetic' },
+  { id: 'curious',     emoji: '🔍', label: 'Curious' },
+  { id: 'spontaneous', emoji: '🎲', label: 'Spontaneous' },
 ]
 
-const SAMPLE_CARDS = [
-  { emoji: '🗼', name: 'Eiffel Tower', city: 'Paris' },
-  { emoji: '🏛️', name: 'Colosseum', city: 'Rome' },
-  { emoji: '⛩️', name: 'Fushimi Inari', city: 'Kyoto' },
-  { emoji: '🕌', name: 'Taj Mahal', city: 'Agra' },
-]
+const POPULAR = ['Tokyo', 'Paris', 'Goa', 'Bali', 'New York', 'Rome', 'Rajasthan', 'Dubai', 'London', 'Kyoto']
 
-const LOADING_STEPS = [
-  '🤖 Asking AI to plan your trip...',
-  '🗺️ Building your day-by-day itinerary...',
-  '📍 Finding all the locations...',
-  '💾 Saving your itinerary...',
+const STEPS = [
+  '🤖 Asking AI to plan your trip…',
+  '📋 Building day-by-day itinerary…',
+  '📍 Geocoding all locations…',
+  '💾 Saving your itinerary…',
 ]
 
 export default function LandingPage() {
-  const [destination, setDestination] = useState('')
+  const [dest, setDest] = useState('')
   const [days, setDays] = useState(3)
   const [style, setStyle] = useState('balanced')
   const [mood, setMood] = useState('relaxed')
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState(0)
   const [error, setError] = useState('')
-  const [loadingStep, setLoadingStep] = useState(0)
-  const [retryAfter, setRetryAfter] = useState(null)
-  const [showQuiz, setShowQuiz] = useState(false)
+  const [showPersonalize, setShowPersonalize] = useState(false)
   const navigate = useNavigate()
   const { dark, setDark } = useTheme()
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!destination.trim()) { setError('Please enter a destination!'); return }
-
-    setLoading(true)
-    setError('')
-    setRetryAfter(null)
-    setLoadingStep(0)
-
-    let step = 0
-    const stepInterval = setInterval(() => {
-      step = Math.min(step + 1, LOADING_STEPS.length - 1)
-      setLoadingStep(step)
-    }, 5000)
-
+    e?.preventDefault()
+    if (!dest.trim()) { setError('Please enter a destination!'); return }
+    setLoading(true); setError(''); setStep(0)
+    let s = 0
+    const si = setInterval(() => { s = Math.min(s+1, STEPS.length-1); setStep(s) }, 5000)
     try {
       const res = await fetch(`${API_URL}/api/trips`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: destination.trim(), days, style, mood })
+        body: JSON.stringify({ destination: dest.trim(), days, style, mood })
       })
-
       const data = await res.json()
-      clearInterval(stepInterval)
-
-      if (res.status === 429) {
-        setRetryAfter(data.retryAfter || 30)
-        setError(data.error)
-        setLoading(false)
-        return
-      }
-
+      clearInterval(si)
+      if (res.status === 429) { setError(data.error); setLoading(false); return }
       if (!res.ok) throw new Error(data.error || 'something went wrong')
       navigate(`/trip/${data.tripId}`)
-
     } catch (err) {
-      clearInterval(stepInterval)
-      setError(err.message)
-      setLoading(false)
+      clearInterval(si); setError(err.message); setLoading(false)
     }
   }
 
   return (
-    <div className="landing page-enter">
-      <div className="landing__bg-blob landing__bg-blob--1" />
-      <div className="landing__bg-blob landing__bg-blob--2" />
+    <div className="land page-enter">
+      {/* mesh background */}
+      <div className="land__mesh" />
 
-      <nav className="landing__nav">
-        <div className="landing__logo">
-          <img src="/compass.svg" alt="compass" width="32" height="32" />
+      {/* nav */}
+      <nav className="land__nav">
+        <div className="land__brand">
+          <img src="/compass.svg" alt="" width="30" height="30" />
           <span>WanderPlan</span>
         </div>
-        <div className="landing__nav-links">
-          <Link to="/history" className="landing__nav-link">Past Trips</Link>
-          <button className="landing__theme-toggle" onClick={() => setDark(!dark)} title="Toggle dark mode">
+        <div className="land__nav-right">
+          <Link to="/history" className="land__nav-link">Past Trips</Link>
+          <button className="land__dark-btn" onClick={() => setDark(!dark)}>
             {dark ? '☀️' : '🌙'}
           </button>
         </div>
       </nav>
 
-      <main className="landing__main">
-        <div className="landing__hero">
-          <div className="landing__text">
-            <p className="landing__eyebrow">✨ AI-powered travel planning</p>
-            <h1 className="landing__title">
-              Your next adventure,<br />
-              <em>planned in seconds</em>
-            </h1>
-            <p className="landing__subtitle">
-              Tell us where you want to go. Our AI builds a complete
-              day-by-day itinerary with maps, packing lists, cost estimates,
-              and insider tips — completely free.
-            </p>
-            <div className="landing__features">
-              <span>🗺️ Interactive map</span>
-              <span>💡 Insider tips</span>
-              <span>🧳 Packing list</span>
-              <span>💰 Cost estimate</span>
-              <span>📅 Calendar export</span>
-              <span>🔊 Voice narration</span>
-            </div>
+      {/* hero */}
+      <section className="land__hero">
+        <div className="land__hero-text">
+          <div className="land__eyebrow">✨ AI-powered travel planner</div>
+          <h1 className="land__title">
+            Your perfect trip,<br />
+            <em>crafted in seconds</em>
+          </h1>
+          <p className="land__sub">
+            Type a destination. Get a complete day-by-day itinerary with maps,
+            insider tips, packing lists, and cost estimates — all for free.
+          </p>
+          <div className="land__features">
+            {['🗺️ Interactive map', '💡 Insider tips', '🧳 Packing list', '💰 Cost estimate', '📅 Calendar export', '🔊 Voice narration'].map(f => (
+              <span key={f} className="land__feature-pill">{f}</span>
+            ))}
           </div>
+        </div>
 
-          <div className="landing__form-wrapper">
-            <form className="landing__form" onSubmit={handleSubmit}>
-              <h2 className="landing__form-title">Plan my trip</h2>
+        {/* form */}
+        <div className="land__form-wrap">
+          <form className="land__form" onSubmit={handleSubmit}>
+            <div className="land__form-header">
+              <h2>Plan my trip</h2>
+              <span className="land__form-tag">free · AI-powered</span>
+            </div>
 
-              <div className="landing__field">
-                <label htmlFor="destination">Where do you want to go?</label>
+            {/* destination */}
+            <div className="land__field">
+              <label>Destination</label>
+              <div className="land__input-wrap">
+                <span className="land__input-icon">🔍</span>
                 <input
-                  id="destination"
                   type="text"
-                  placeholder="e.g. Tokyo, Paris, Goa, Rajasthan..."
-                  value={destination}
-                  onChange={e => setDestination(e.target.value)}
+                  placeholder="Tokyo, Bali, Paris, Goa…"
+                  value={dest}
+                  onChange={e => setDest(e.target.value)}
                   disabled={loading}
                   autoComplete="off"
                 />
               </div>
-
-              <div className="landing__field">
-                <label>How many days?</label>
-                <div className="landing__days-picker">
-                  {[1,2,3,4,5,6,7].map(d => (
-                    <button
-                      key={d}
-                      type="button"
-                      className={`landing__day-btn ${days === d ? 'active' : ''}`}
-                      onClick={() => setDays(d)}
-                      disabled={loading}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* travel style quiz toggle */}
-              <button
-                type="button"
-                className="landing__quiz-toggle"
-                onClick={() => setShowQuiz(!showQuiz)}
-              >
-                🎯 Personalise my trip {showQuiz ? '▲' : '▼'}
-              </button>
-
-              {showQuiz && (
-                <div className="landing__quiz">
-                  <div className="landing__field">
-                    <label>Travel style</label>
-                    <div className="landing__style-grid">
-                      {TRAVEL_STYLES.map(s => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className={`landing__style-btn ${style === s.id ? 'active' : ''}`}
-                          onClick={() => setStyle(s.id)}
-                          disabled={loading}
-                        >
-                          <span className="landing__style-label">{s.label}</span>
-                          <span className="landing__style-desc">{s.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="landing__field">
-                    <label>Your mood</label>
-                    <div className="landing__mood-picker">
-                      {MOODS.map(m => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          className={`landing__mood-btn ${mood === m.id ? 'active' : ''}`}
-                          onClick={() => setMood(m.id)}
-                          disabled={loading}
-                        >
-                          {m.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {loading && (
-                <div className="landing__loading-steps">
-                  {LOADING_STEPS.map((step, i) => (
-                    <div key={i} className={`landing__step-item ${i === loadingStep ? 'active' : ''} ${i < loadingStep ? 'done' : ''}`}>
-                      <span className="landing__step-icon">
-                        {i < loadingStep ? '✓' : i === loadingStep ? '⟳' : '○'}
-                      </span>
-                      {step}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {error && (
-                <div className="landing__error">
-                  <span>⚠️ {error}</span>
-                  <button type="button" className="landing__retry-btn" onClick={handleSubmit}>
-                    {retryAfter ? `Retry in ${retryAfter}s` : 'Try Again'}
+              {/* popular suggestions */}
+              <div className="land__suggest">
+                {POPULAR.map(p => (
+                  <button key={p} type="button" className="land__suggest-btn" onClick={() => setDest(p)} disabled={loading}>
+                    {p}
                   </button>
-                </div>
-              )}
-
-              <button type="submit" className="landing__submit" disabled={loading}>
-                {loading ? (
-                  <span className="landing__loading-text">
-                    <span className="landing__spinner" />
-                    Generating... (~{days * 8} places to find)
-                  </span>
-                ) : (
-                  '🗺️ Generate My Itinerary'
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <div className="landing__cards">
-          {SAMPLE_CARDS.map((card, i) => (
-            <div key={i} className="landing__sample-card" style={{ animationDelay: `${i * 0.1}s` }}>
-              <span className="landing__card-emoji">{card.emoji}</span>
-              <div>
-                <strong>{card.name}</strong>
-                <span>{card.city}</span>
+                ))}
               </div>
+            </div>
+
+            {/* days */}
+            <div className="land__field">
+              <label>Duration</label>
+              <div className="land__days">
+                {[1,2,3,4,5,6,7].map(d => (
+                  <button
+                    key={d} type="button"
+                    className={`land__day-btn ${days === d ? 'land__day-btn--active' : ''}`}
+                    onClick={() => setDays(d)} disabled={loading}
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* personalise toggle */}
+            <button
+              type="button"
+              className="land__personalise-btn"
+              onClick={() => setShowPersonalize(!showPersonalize)}
+            >
+              <span>🎯 Personalise my trip</span>
+              <span>{showPersonalize ? '▲' : '▼'}</span>
+            </button>
+
+            {showPersonalize && (
+              <div className="land__personalise">
+                <div className="land__field">
+                  <label>Travel style</label>
+                  <div className="land__style-grid">
+                    {STYLES.map(s => (
+                      <button
+                        key={s.id} type="button"
+                        className={`land__style-card ${style === s.id ? 'land__style-card--active' : ''}`}
+                        onClick={() => setStyle(s.id)} disabled={loading}
+                      >
+                        <span className="land__style-emoji">{s.emoji}</span>
+                        <span className="land__style-name">{s.label}</span>
+                        <span className="land__style-desc">{s.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="land__field">
+                  <label>Mood</label>
+                  <div className="land__moods">
+                    {MOODS.map(m => (
+                      <button
+                        key={m.id} type="button"
+                        className={`land__mood-btn ${mood === m.id ? 'land__mood-btn--active' : ''}`}
+                        onClick={() => setMood(m.id)} disabled={loading}
+                      >
+                        {m.emoji} {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* loading steps */}
+            {loading && (
+              <div className="land__progress">
+                {STEPS.map((s, i) => (
+                  <div key={i} className={`land__progress-step ${i === step ? 'active' : i < step ? 'done' : ''}`}>
+                    <span>{i < step ? '✓' : i === step ? '⟳' : '·'}</span>
+                    {s}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {error && (
+              <div className="land__error">
+                ⚠️ {error}
+                <button type="button" onClick={handleSubmit}>Retry</button>
+              </div>
+            )}
+
+            <button type="submit" className="land__submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="land__spin" />
+                  Generating…
+                </>
+              ) : '🗺️ Generate My Itinerary'}
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* how it works */}
+      <section className="land__how">
+        <h2>How it works</h2>
+        <div className="land__steps-row">
+          {[
+            { n: '1', title: 'Pick destination + style', body: 'Enter a city, choose your days, pick your travel personality' },
+            { n: '2', title: 'AI builds the plan',       body: '8 curated stops per day — breakfast, attractions, lunch, hidden gems, dinner, nightlife' },
+            { n: '3', title: 'Explore & share',          body: 'Interactive map, voice narration, packing list, calendar, WhatsApp preview' },
+          ].map(s => (
+            <div key={s.n} className="land__step-card">
+              <div className="land__step-num">{s.n}</div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
             </div>
           ))}
         </div>
+      </section>
 
-        <div className="landing__how">
-          <h2>How it works</h2>
-          <div className="landing__steps">
-            <div className="landing__step">
-              <div className="landing__step-num">1</div>
-              <h3>Pick destination + style</h3>
-              <p>Choose where to go, how many days, and your travel personality</p>
-            </div>
-            <div className="landing__step-arrow">→</div>
-            <div className="landing__step">
-              <div className="landing__step-num">2</div>
-              <h3>AI builds the plan</h3>
-              <p>8 places per day — breakfast, attractions, lunch, hidden gems, dinner, nightlife</p>
-            </div>
-            <div className="landing__step-arrow">→</div>
-            <div className="landing__step">
-              <div className="landing__step-num">3</div>
-              <h3>Explore, export, share</h3>
-              <p>Interactive map, voice narration, packing list, calendar export, WhatsApp share</p>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <footer className="landing__footer">
+      <footer className="land__footer">
+        <img src="/compass.svg" alt="" width="20" height="20" style={{ opacity: 0.4 }} />
         <p>© {new Date().getFullYear()} WanderPlan · Made with ❤️ by Kartavya Sonar</p>
-        <p style={{ fontSize: '0.78rem', marginTop: '4px', opacity: 0.7 }}>
-          Built with React, Node.js, Llama AI & OpenStreetMap · 100% free to use
-        </p>
+        <p className="land__footer-sub">React · Node.js · Llama AI · OpenStreetMap · 100% free</p>
       </footer>
     </div>
   )
