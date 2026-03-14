@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import DayCard from './DayCard'
+import PlaceDetailPanel from './PlaceDetailPanel'
 import './ItineraryPanel.css'
 
 const getDistanceKm = (lat1, lng1, lat2, lng2) => {
@@ -31,55 +33,73 @@ const groupByDay = (locations) => {
   return groups
 }
 
-const renderLocationsWithTravel = (locs, dayColor) => {
-  return locs.map((loc, i) => (
-    <div key={loc.id}>
-      <DayCard location={loc} dayColor={dayColor} />
-      {i < locs.length - 1 && (
-        <div className="travel-connector">
-          <div className="travel-connector__line" />
-          <span className="travel-connector__time">
-            🚶 {getTravelTime(loc, locs[i + 1]) || '?'}
-          </span>
-          <div className="travel-connector__line" />
-        </div>
-      )}
-    </div>
-  ))
-}
-
 export default function ItineraryPanel({ locations, activeDay, totalDays, className }) {
-  if (activeDay === 'all') {
-    const grouped = groupByDay(locations)
-    return (
-      <div className={`itinerary-panel ${className || ''}`}>
-        <div className="itinerary-panel__scroll">
-          {Object.entries(grouped).map(([day, dayLocations]) => (
-            <div key={day} className="itinerary-day-section">
-              <div className="itinerary-day-header" style={{ '--day-color': `var(--day-${Math.min(parseInt(day), 7)})` }}>
-                <span className="itinerary-day-dot" />
-                <h3>Day {day}</h3>
-                <span className="itinerary-day-count">{dayLocations.length} places</span>
-              </div>
-              {renderLocationsWithTravel(dayLocations, `var(--day-${Math.min(parseInt(day), 7)})`)}
-            </div>
-          ))}
-        </div>
+  const [selectedPlace, setSelectedPlace] = useState(null)
+
+  const renderLocationsWithTravel = (locs, dayColor) => {
+    return locs.map((loc, i) => (
+      <div key={loc.id}>
+        <DayCard
+          location={loc}
+          dayColor={dayColor}
+          onClick={setSelectedPlace}
+        />
+        {i < locs.length - 1 && (
+          <div className="travel-connector">
+            <div className="travel-connector__line" />
+            <span className="travel-connector__time">
+              🚶 {getTravelTime(loc, locs[i + 1]) || '?'}
+            </span>
+            <div className="travel-connector__line" />
+          </div>
+        )}
       </div>
-    )
+    ))
   }
 
-  const filtered = locations.filter(l => l.day === activeDay)
-  return (
-    <div className={`itinerary-panel ${className || ''}`}>
-      <div className="itinerary-panel__scroll">
+  const content = () => {
+    if (activeDay === 'all') {
+      const grouped = groupByDay(locations)
+      return Object.entries(grouped).map(([day, dayLocations]) => (
+        <div key={day} className="itinerary-day-section">
+          <div className="itinerary-day-header" style={{ '--day-color': `var(--day-${Math.min(parseInt(day), 7)})` }}>
+            <span className="itinerary-day-dot" />
+            <h3>Day {day}</h3>
+            <span className="itinerary-day-count">{dayLocations.length} places</span>
+          </div>
+          {renderLocationsWithTravel(dayLocations, `var(--day-${Math.min(parseInt(day), 7)})`)}
+        </div>
+      ))
+    }
+
+    const filtered = locations.filter(l => l.day === activeDay)
+    return (
+      <>
         <div className="itinerary-day-header" style={{ '--day-color': `var(--day-${Math.min(activeDay, 7)})` }}>
           <span className="itinerary-day-dot" />
           <h3>Day {activeDay}</h3>
           <span className="itinerary-day-count">{filtered.length} places</span>
         </div>
         {renderLocationsWithTravel(filtered, `var(--day-${Math.min(activeDay, 7)})`)}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div className={`itinerary-panel ${className || ''}`}>
+        <div className="itinerary-panel__scroll">
+          {content()}
+        </div>
       </div>
-    </div>
+
+      {/* place detail side panel */}
+      {selectedPlace && (
+        <PlaceDetailPanel
+          location={selectedPlace}
+          onClose={() => setSelectedPlace(null)}
+        />
+      )}
+    </>
   )
 }

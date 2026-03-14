@@ -47,3 +47,19 @@
   outline: 2px solid var(--forest);
   outline-offset: 2px;
 }
+.day-card {
+  cursor: pointer;
+}
+
+.day-card:focus {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+.day-card__click-hint {
+  font-size: 0.72rem;
+  color: var(--forest);
+  font-weight: 600;
+  margin-top: 6px;
+  opacity: 0.7;
+}

@@ -9,23 +9,9 @@ const TIME_ICONS = {
   Morning: '🌅', Afternoon: '☀️', Evening: '🌙',
 }
 
-const TYPE_ICONS = {
-  breakfast: '☕', lunch: '🥗', dinner: '🍴',
-  attraction: '📸', experience: '✨', sunset: '🌇',
-  nightlife: '🌃',
-}
-
-const TYPE_LABELS = {
-  breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner',
-  attraction: 'Attraction', experience: 'Experience',
-  sunset: 'Sunset Spot', nightlife: 'Night Out',
-}
-
 export default function DayCard({ location, dayColor, onClick }) {
   const categoryIcon = CATEGORY_ICONS[location.category] || '📍'
   const timeIcon = TIME_ICONS[location.time_of_day] || '🕐'
-  const typeIcon = TYPE_ICONS[location.type] || '📍'
-  const typeLabel = TYPE_LABELS[location.type] || location.type
   const hasCoords = location.lat && location.lng
 
   return (
@@ -39,48 +25,27 @@ export default function DayCard({ location, dayColor, onClick }) {
     >
       <div className="day-card__accent-bar" />
       <div className="day-card__content">
-
-        {/* top row - time + type badge */}
         <div className="day-card__top">
           <div className="day-card__time">
             <span>{timeIcon}</span>
             <span className="day-card__time-label">{location.time_of_day}</span>
           </div>
-          <div className="day-card__type-badge" style={{ '--badge-color': dayColor }}>
-            {typeIcon} {typeLabel || location.category}
+          <div className="day-card__category">
+            <span>{categoryIcon}</span>
+            <span>{location.category}</span>
           </div>
         </div>
-
-        {/* place name */}
         <h4 className="day-card__name">{location.place_name}</h4>
-
-        {/* description */}
         <p className="day-card__desc">{location.description}</p>
-
-        {/* duration + insider tip */}
-        <div className="day-card__meta-row">
-          {location.duration && (
-            <span className="day-card__duration">
-              ⏱️ {location.duration}
-            </span>
-          )}
-          {location.tip && (
-            <span className="day-card__tip">
-              💡 {location.tip}
-            </span>
-          )}
-        </div>
-
-        {/* coords or no location warning */}
-        {hasCoords ? (
+        {hasCoords && (
           <div className="day-card__coords">
             📍 {parseFloat(location.lat).toFixed(4)}, {parseFloat(location.lng).toFixed(4)}
           </div>
-        ) : (
+        )}
+        {!hasCoords && (
           <div className="day-card__no-coords">⚠️ location not found on map</div>
         )}
-
-        <div className="day-card__click-hint">Tap for photos & info →</div>
+        <div className="day-card__click-hint">Tap for details →</div>
       </div>
     </div>
   )
