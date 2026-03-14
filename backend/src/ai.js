@@ -84,17 +84,31 @@ Keep each list to 5-8 items. Be specific to ${destination} (e.g. if hot weather,
 }
 
 const generateItinerary = async (destination, days, style, mood) => {
+  // for longer trips we need more tokens
+  const maxTokens = days <= 2 ? 3000 : days <= 4 ? 6000 : 8000
+
   const completion = await groq.chat.completions.create({
     messages: [{ role: 'user', content: buildPrompt(destination, days, style, mood) }],
     model: 'llama-3.3-70b-versatile',
     temperature: 0.8,
-    max_tokens: 6000,
+    max_tokens: maxTokens,
   })
 
   const text = completion.choices[0]?.message?.content || ''
   const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim()
-  const parsed = JSON.parse(cleaned)
 
+  // try to fix truncated json - sometimes the model cuts off mid-array
+  let jsonToParse = cleaned
+  if (!cleaned.endsWith(']')) {
+    // find the last complete object (ends with }) and close the array
+    const lastBrace = cleaned.lastIndexOf('}')
+    if (lastBrace > -1) {
+      jsonToParse = cleaned.substring(0, lastBrace + 1) + ']'
+      console.log('fixed truncated json - trimmed to last complete object')
+    }
+  }
+
+  const parsed = JSON.parse(jsonToParse)
   if (!Array.isArray(parsed)) throw new Error('ai did not return an array')
   return parsed
 }
