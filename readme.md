@@ -2,7 +2,7 @@
 
 an ai-powered travel planner i built as a portfolio project. type in any city, pick how many days, choose your travel style — and it generates a complete day-by-day itinerary with 8 curated stops per day, an interactive map, weather info, cost estimates, packing list, voice narration, and a lot more. all for free.
 
-live demo: https://wander-plan.vercel.app
+live demo: https://wander-plan-orcin.vercel.app
 
 ---
 
